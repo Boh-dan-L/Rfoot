@@ -21,8 +21,8 @@
 
 ## Статус запуску
 
-Оплата навмисно вимкнена через `APP_CONFIG.payments_enabled: false` у `docs/foot/index.html`.
-Вмикати лише після підтвердженого production-деплою спільного bayer, нового Secret Manager binding, перевірки мерчанта й домену.
+Оплата ввімкнена через `APP_CONFIG.payments_enabled: true` у `docs/foot/index.html` після явного погодження користувача 20.10.2026.
+Спільний bayer оновлено до revision `bayer-00085-pig`; HTTPS активний, новий Secret Manager binding підключений. Контрольна неоплачена форма WayForPay на 370 UAH відкрилася успішно, після чого сесію скасовано. Успішна оплата, Approved webhook і Telegram access ще не перевірені реальним платежем.
 Серверний код і секрети в цьому репозиторії відсутні.
 
 ## GitHub Pages і DNS

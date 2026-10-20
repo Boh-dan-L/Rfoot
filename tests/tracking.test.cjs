@@ -55,7 +55,7 @@ check('No old Meta/TikTok/Clarity destinations in deployable artifacts', () => {
   const tags=JSON.stringify(version.tag);
   for (const old of ['930226716181107','GTM-PFHVJTZL','D3O0ND3C77U53GBVNA70','y89x6z792r'])
     assert.equal((main+thanks+tags).includes(old),false);
-  assert(main.includes('payments_enabled: false'));
+  assert(main.includes('payments_enabled: true'));
   assert(main.includes('data-product-id="rfoot_370"'));
   assert(main.includes('GTM-WLRCGQ6M'));
 });
