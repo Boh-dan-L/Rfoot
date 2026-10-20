@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Дякуємо — Позбудься болю в стопі — всього 15 хв на день</title>
+  <link rel="stylesheet" href="../../shared/css/base.css">
+  <link rel="stylesheet" href="../foot.css">
+  <script>
+    window.APP_CONFIG = {
+      landing_id: "rfoot-thank-you",
+      pixel_key: "pixel_rfoot"
+    };
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      landing_id: window.APP_CONFIG.landing_id,
+      pixel_key: window.APP_CONFIG.pixel_key
+    });
+  </script>
+  <!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-WLRCGQ6M');</script>
+<!-- End Google Tag Manager -->
+</head>
+<body>
+  <!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WLRCGQ6M"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+  <main class="thankyou">
+    <div class="thankyou__box container">
+      <h1 class="thankyou__title">🎉 Дякуємо за покупку!</h1>
+      <p class="thankyou__text">
+        Ваш доступ до курсу активовано.
+        Натисніть кнопку нижче, щоб перейти до навчання у нашому чат-боті.
+      </p>
+      <a class="btn btn--primary" href="https://telegram.me/FootRehabBot?start=26fot">
+        Перейти до курсу
+      </a>
+    </div>
+  </main>
+  <footer class="footer">© Bogdan Rehab</footer>
+  <script>
+(function () {
+  var params = new URLSearchParams(window.location.search);
+  var eventId = params.get("event_id");
+  var orderRef = params.get("order_ref");
+  var value = parseFloat(params.get("value")) || 0;
+  var currency = params.get("currency") || "UAH";
+
+  if (!eventId || !orderRef) return;
+
+  // захист від повторного фаєру при F5
+  var dedupKey = "meta_purchase_fired_" + orderRef;
+  if (sessionStorage.getItem(dedupKey)) return;
+  sessionStorage.setItem(dedupKey, "1");
+
+  // пуш у dataLayer для GTM
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({
+    event: "meta_purchase",
+    landing_id: window.APP_CONFIG?.landing_id || null,
+    pixel_key: window.APP_CONFIG?.pixel_key || null,
+    purchase: {
+      event_id: eventId,
+      order_ref: orderRef,
+      value: value,
+      currency: currency
+    }
+  });
+})();
+</script>
+</body>
+</html>

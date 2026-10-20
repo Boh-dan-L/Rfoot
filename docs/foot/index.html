@@ -1,0 +1,1360 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Позбудься болю в стопі — всього 15 хв на день</title>
+  <link rel="stylesheet" href="../shared/css/base.css">
+  <link rel="stylesheet" href="./foot.css">
+  <link rel="preconnect" href="https://bayer-1078313683185.europe-west1.run.app" crossorigin>
+  <script>
+    window.APP_CONFIG = {
+      landing_id: "rfoot",
+      payments_enabled: false,
+      pixel_key: "pixel_rfoot"
+    };
+
+    // Робимо landing_id та server pixel route доступними GTM ще до завантаження контейнера.
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      landing_id: window.APP_CONFIG.landing_id,
+      pixel_key: window.APP_CONFIG.pixel_key
+    });
+  </script>
+  <!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-WLRCGQ6M');</script>
+<!-- End Google Tag Manager -->
+
+<script>
+(function () {
+  function getParam(name) {
+    return new URLSearchParams(window.location.search).get(name);
+  }
+
+  function getCookie(name) {
+    const match = document.cookie.match(new RegExp("(^|;\\s*)" + name + "=([^;]+)"));
+    return match ? decodeURIComponent(match[2]) : null;
+  }
+
+  function uuidv4() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === "x" ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
+  function getLS(key) {
+    try {
+      return localStorage.getItem(key);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function setLS(key, value) {
+    try {
+      localStorage.setItem(key, value);
+    } catch (e) {}
+  }
+
+  function saveIfExists(key, value) {
+    if (value !== null && value !== undefined && value !== "") {
+      setLS(key, value);
+    }
+  }
+
+  function ensureExternalId() {
+    let id = getLS("meta_external_id");
+    if (!id) {
+      id = uuidv4();
+      setLS("meta_external_id", id);
+    }
+    return id;
+  }
+
+  function updateStoredMetaCookies() {
+    const currentFbp = getCookie("_fbp");
+    const currentFbc = getCookie("_fbc");
+
+    if (currentFbp && currentFbp !== getLS("meta_fbp")) {
+      setLS("meta_fbp", currentFbp);
+    }
+
+    // Передаємо справжній _fbc без змін. Його creationTime уже в мілісекундах.
+    if (currentFbc && currentFbc !== getLS("meta_fbc")) {
+      setLS("meta_fbc", currentFbc);
+    }
+  }
+
+  function waitForMetaCookies(retries, delay) {
+    updateStoredMetaCookies();
+
+    const hasFbp = !!getLS("meta_fbp");
+    const hasFbcOrNoClick = !!getLS("meta_fbc") || !getParam("fbclid");
+    if (hasFbp && hasFbcOrNoClick) return;
+
+    if (retries > 0) {
+      setTimeout(function () {
+        waitForMetaCookies(retries - 1, delay);
+      }, delay);
+    }
+  }
+
+  const utm = {
+    utm_source: getParam("utm_source"),
+    utm_medium: getParam("utm_medium"),
+    utm_campaign: getParam("utm_campaign"),
+    utm_adset: getParam("utm_adset"),
+    utm_content: getParam("utm_content"),
+    utm_term: getParam("utm_term")
+  };
+
+  const fbclid = getParam("fbclid");
+  // ВАЖЛИВО: Meta fbc creationTime працює в мілісекундах. Не ділити Date.now() на 1000.
+  const nowTs = String(Date.now());
+
+  ensureExternalId();
+
+  updateStoredMetaCookies();
+  waitForMetaCookies(15, 300);
+
+  const hasAttributionInUrl =
+    Object.values(utm).some(Boolean) || !!fbclid;
+
+  // FIRST TOUCH
+  if (!getLS("meta_first_seen_at") && hasAttributionInUrl) {
+    setLS("meta_first_seen_at", nowTs);
+
+    saveIfExists("meta_first_utm_source", utm.utm_source);
+    saveIfExists("meta_first_utm_medium", utm.utm_medium);
+    saveIfExists("meta_first_utm_campaign", utm.utm_campaign);
+    saveIfExists("meta_first_utm_adset", utm.utm_adset);
+    saveIfExists("meta_first_utm_content", utm.utm_content);
+    saveIfExists("meta_first_utm_term", utm.utm_term);
+    saveIfExists("meta_first_fbclid", fbclid);
+  }
+
+  // Якщо first_seen_at ще нема взагалі — створи базовий timestamp
+  if (!getLS("meta_first_seen_at")) {
+    setLS("meta_first_seen_at", nowTs);
+  }
+
+  // Окремо зберігаємо точний час отримання fbclid.
+  // Саме цей timestamp використовується як creationTime для fbc.
+  if (fbclid) {
+    if (!getLS("meta_first_fbclid")) {
+      setLS("meta_first_fbclid", fbclid);
+      setLS("meta_first_fbclid_seen_at", nowTs);
+    }
+
+    setLS("meta_last_fbclid", fbclid);
+    setLS("meta_last_fbclid_seen_at", nowTs);
+  }
+
+  // LAST TOUCH
+  if (hasAttributionInUrl) {
+    setLS("meta_last_seen_at", nowTs);
+
+    saveIfExists("meta_last_utm_source", utm.utm_source);
+    saveIfExists("meta_last_utm_medium", utm.utm_medium);
+    saveIfExists("meta_last_utm_campaign", utm.utm_campaign);
+    saveIfExists("meta_last_utm_adset", utm.utm_adset);
+    saveIfExists("meta_last_utm_content", utm.utm_content);
+    saveIfExists("meta_last_utm_term", utm.utm_term);
+    saveIfExists("meta_last_fbclid", fbclid);
+  }
+
+  console.log("ATTR INIT", {
+    external_id: getLS("meta_external_id"),
+    fbp: getLS("meta_fbp"),
+    fbc: getLS("meta_fbc"),
+    first: {
+      seen_at: getLS("meta_first_seen_at"),
+      fbclid: getLS("meta_first_fbclid"),
+      utm_source: getLS("meta_first_utm_source"),
+      utm_medium: getLS("meta_first_utm_medium"),
+      utm_campaign: getLS("meta_first_utm_campaign"),
+      utm_adset: getLS("meta_first_utm_adset"),
+      utm_content: getLS("meta_first_utm_content"),
+      utm_term: getLS("meta_first_utm_term")
+    },
+    last: {
+      seen_at: getLS("meta_last_seen_at"),
+      fbclid: getLS("meta_last_fbclid"),
+      utm_source: getLS("meta_last_utm_source"),
+      utm_medium: getLS("meta_last_utm_medium"),
+      utm_campaign: getLS("meta_last_utm_campaign"),
+      utm_adset: getLS("meta_last_utm_adset"),
+      utm_content: getLS("meta_last_utm_content"),
+      utm_term: getLS("meta_last_utm_term")
+    }
+  });
+})();
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const API_URL = "https://bayer-1078313683185.europe-west1.run.app";
+  const buttons = document.querySelectorAll(".pay-btn");
+  const PAGE_LOADED_AT_MS = Date.now();
+
+  if (!buttons.length) return;
+
+  function uuidv4() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === "x" ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
+  function getLS(key) {
+    try {
+      return localStorage.getItem(key);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function getNavigationMetrics() {
+    const nav = performance.getEntriesByType?.("navigation")?.[0];
+    if (!nav) return null;
+
+    return {
+      dom_content_loaded_ms: Math.round(nav.domContentLoadedEventEnd),
+      load_event_ms: Math.round(nav.loadEventEnd),
+      response_end_ms: Math.round(nav.responseEnd)
+    };
+  }
+
+  function buildAttributionPayload() {
+    return {
+      external_id: getLS("meta_external_id"),
+      fbp: getLS("meta_fbp"),
+      fbc: getLS("meta_fbc"),
+      fbclid: getLS("meta_last_fbclid") || getLS("meta_first_fbclid") || null,
+      fbclid_seen_at: Number(
+        getLS("meta_last_fbclid_seen_at") ||
+        getLS("meta_first_fbclid_seen_at")
+      ) || null,
+      utm_source: getLS("meta_last_utm_source") || getLS("meta_first_utm_source") || null,
+      utm_medium: getLS("meta_last_utm_medium") || getLS("meta_first_utm_medium") || null,
+      utm_campaign: getLS("meta_last_utm_campaign") || getLS("meta_first_utm_campaign") || null,
+      utm_adset: getLS("meta_last_utm_adset") || getLS("meta_first_utm_adset") || null,
+      utm_content: getLS("meta_last_utm_content") || getLS("meta_first_utm_content") || null,
+      utm_term: getLS("meta_last_utm_term") || getLS("meta_first_utm_term") || null,
+      first_seen_at: Number(getLS("meta_first_seen_at")) || null,
+      last_seen_at: Number(getLS("meta_last_seen_at")) || null
+    };
+  }
+
+  function trackDiagnostic(eventName, details) {
+    const payload = {
+      event_name: eventName,
+      session_id: getLS("meta_external_id"),
+      landing_id: window.APP_CONFIG?.landing_id || null,
+      pixel_key: window.APP_CONFIG?.pixel_key || null,
+      page_url: window.location.origin + window.location.pathname,
+      client_event_time_ms: Date.now(),
+      attribution: buildAttributionPayload(),
+      details: details || {}
+    };
+
+    try {
+      const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(API_URL + "/track", blob);
+        return;
+      }
+    } catch (error) {
+      console.warn("sendBeacon unavailable:", error);
+    }
+
+    fetch(API_URL + "/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      keepalive: true
+    }).catch(function () {});
+  }
+
+  let warmupStarted = false;
+
+  function warmPaymentService(reason) {
+    if (warmupStarted) return;
+    warmupStarted = true;
+
+    const startedAt = performance.now();
+
+    fetch(API_URL + "/health", {
+      method: "GET",
+      cache: "no-store",
+      mode: "cors"
+    })
+      .then(function (response) {
+        console.log("payment service warm-up:", reason, Math.round(performance.now() - startedAt), "ms", response.status);
+      })
+      .catch(function (error) {
+        console.warn("payment service warm-up failed:", error);
+        warmupStarted = false;
+      });
+  }
+
+  window.setTimeout(function () {
+    warmPaymentService("page-load");
+  }, 800);
+
+  buttons.forEach(function (button) {
+    ["pointerenter", "touchstart", "focus"].forEach(function (eventName) {
+      button.addEventListener(eventName, function () {
+        warmPaymentService(eventName);
+      }, { once: true, passive: true });
+    });
+  });
+
+  function pushBrowserCheckoutEvent(checkoutEventId, orderReference, value, currency) {
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: "meta_initiate_checkout",
+      checkout: {
+        event_id: checkoutEventId,
+        order_ref: orderReference,
+        value: Number(value) || 0,
+        currency: currency || "UAH"
+      }
+    });
+  }
+
+  buttons.forEach(function (btn) {
+    btn.addEventListener("click", async function (e) {
+      e.preventDefault();
+      if (!window.APP_CONFIG.payments_enabled) {
+        alert("Оплата ще налаштовується. Спробуйте пізніше.");
+        return;
+      }
+
+      const originalText = btn.textContent;
+      const purchaseEventId = uuidv4();
+      const checkoutEventId = uuidv4();
+      const clickedAtMs = Date.now();
+      const productId = btn.dataset.productId;
+
+      trackDiagnostic("payment_button_clicked", {
+        product_id: productId,
+        checkout_event_id: checkoutEventId,
+        purchase_event_id: purchaseEventId,
+        page_loaded_at_ms: PAGE_LOADED_AT_MS,
+        time_on_page_before_click_ms: clickedAtMs - PAGE_LOADED_AT_MS,
+        navigation: getNavigationMetrics()
+      });
+
+      const payload = {
+        event_id: purchaseEventId,
+        purchase_event_id: purchaseEventId,
+        checkout_event_id: checkoutEventId,
+        landing_id: window.APP_CONFIG?.landing_id || null,
+        pixel_key: window.APP_CONFIG?.pixel_key || null,
+        product_id: productId,
+        event_source_url: window.location.href,
+        client_clicked_at_ms: clickedAtMs,
+        page_loaded_at_ms: PAGE_LOADED_AT_MS,
+        navigation: getNavigationMetrics(),
+        attribution: buildAttributionPayload()
+      };
+
+      console.log("PAYLOAD TO API:", payload);
+
+      try {
+        btn.textContent = "Формуємо платіж...";
+        btn.disabled = true;
+        btn.classList.add("is-loading");
+        btn.style.pointerEvents = "none";
+
+        const startedAt = performance.now();
+
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const createOrderMs = Math.round(performance.now() - startedAt);
+        console.log("create-order ms:", createOrderMs);
+        console.log("response status:", res.status);
+
+        const data = await res.json();
+        console.log("response data:", data);
+
+        if (!res.ok || !data.ok || !data.payment) {
+          throw new Error(data.error || "Не вдалося створити оплату");
+        }
+
+        trackDiagnostic("payment_order_created", {
+          product_id: productId,
+          order_reference: data.orderReference,
+          checkout_event_id: checkoutEventId,
+          purchase_event_id: purchaseEventId,
+          create_order_client_ms: createOrderMs,
+          server_timings: data.diagnostics || null,
+          meta_checkout_sent: data.meta_checkout?.ok === true
+        });
+
+        // Старий GTM очікує custom event meta_initiate_checkout.
+        // Той самий checkout_event_id передається і в браузерний Pixel, і в CAPI для дедуплікації.
+        pushBrowserCheckoutEvent(
+          checkoutEventId,
+          data.orderReference,
+          data.value,
+          data.currency
+        );
+
+        // Server-side InitiateCheckout через CAPI.
+        fetch(API_URL + "/checkout", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            order_reference: data.orderReference
+          }),
+          keepalive: true
+        })
+          .then(async function (response) {
+            const result = await response.json();
+
+            console.log("Meta InitiateCheckout CAPI:", {
+              status: response.status,
+              result: result
+            });
+
+            return result;
+          })
+          .catch(function (error) {
+            console.error("Meta InitiateCheckout CAPI error:", error);
+
+            return {
+              ok: false,
+              error: String(error)
+            };
+          });
+
+        const payment = data.payment;
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = "https://secure.wayforpay.com/pay";
+
+        Object.keys(payment).forEach(function (key) {
+          const value = payment[key];
+
+          if (Array.isArray(value)) {
+            value.forEach(function (item) {
+              const input = document.createElement("input");
+              input.type = "hidden";
+              input.name = key + "[]";
+              input.value = item;
+              form.appendChild(input);
+            });
+          } else {
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = key;
+            input.value = value;
+            form.appendChild(input);
+          }
+        });
+
+        document.body.appendChild(form);
+
+        trackDiagnostic("payment_form_submitted", {
+          product_id: productId,
+          order_reference: data.orderReference,
+          checkout_event_id: checkoutEventId,
+          purchase_event_id: purchaseEventId,
+          total_client_ms_from_click: Date.now() - clickedAtMs
+        });
+
+        // A short delay gives the diagnostic beacon and dataLayer event time to leave the page.
+        window.setTimeout(function () {
+          trackDiagnostic("payment_redirect_started", {
+            product_id: productId,
+            order_reference: data.orderReference,
+            checkout_event_id: checkoutEventId,
+            purchase_event_id: purchaseEventId,
+            total_client_ms_from_click: Date.now() - clickedAtMs
+          });
+          form.submit();
+        }, 100);
+
+      } catch (error) {
+        console.error("Помилка create-order/payment:", error);
+
+        trackDiagnostic("payment_error", {
+          product_id: productId,
+          checkout_event_id: checkoutEventId,
+          purchase_event_id: purchaseEventId,
+          message: String(error?.message || error)
+        });
+
+        btn.textContent = originalText;
+        btn.disabled = false;
+        btn.classList.remove("is-loading");
+        btn.style.pointerEvents = "";
+        alert("Не вдалося створити оплату. Спробуйте ще раз.");
+      }
+    });
+  });
+});
+</script>
+</head>
+<body data-landing="foot">
+  <!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WLRCGQ6M"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+<header class="site-header">
+  <button class="burger" aria-label="Відкрити меню"><span></span><span></span><span></span></button>
+  <a class="logo" href="#"><img src="../shared/img/logo.png" alt="Bogdan Rehab" /></a>
+</header>
+<main>
+<section class="hero">
+  <p class="hero__subtitle">Авторський курс від фізичного терапевта</p>
+
+  <div class="hero__grid">
+    <div class="hero__content">
+      <h1 class="hero__title">
+        Курс для тих, хто хоче знову ходити
+        <span class="accent"> без болю в п’яті</span>
+      </h1>
+    </div>
+
+    <div class="hero__media">
+    </div>
+  </div>
+
+  <p class="hero__text">
+    Покрокова програма для зменшення болю в п’яті та стопі за допомогою 
+    <span class="accent">вправ і самомасажу</span> — вдома, без спеціального обладнання, 
+    всього <span class="accent">15 хвилин на день</span>.
+  </p>
+
+  <p class="hero__text">
+    Підійде, якщо боляче ставати на стопу зранку, а 
+    <span class="accent">мазі, процедури чи масаж</span> дали лише тимчасове полегшення.
+  </p>
+
+  <p class="hero__price">
+    Лише за <span class="price-now">370 грн</span>, замість 
+    <span class="price-old">1899 грн</span>
+  </p>
+
+  <p class="hero__bonus">
+    🎁 Бонус: відео про методи лікування болю в стопі, які реально працюють
+  </p>
+
+  <!-- COUNTDOWN -->
+  <div class="bs-countdown"
+    data-mode="duration"
+    data-key="foot-2h"
+    data-duration-ms="900000">
+    
+    <div class="bs-countdown__item">
+      <span class="bs-countdown__num" data-part="days">00</span>
+      <span class="bs-countdown__label">днів</span>
+    </div>
+
+    <div class="bs-countdown__sep">:</div>
+
+    <div class="bs-countdown__item">
+      <span class="bs-countdown__num" data-part="hours">00</span>
+      <span class="bs-countdown__label">год</span>
+    </div>
+
+    <div class="bs-countdown__sep">:</div>
+
+    <div class="bs-countdown__item">
+      <span class="bs-countdown__num" data-part="minutes">00</span>
+      <span class="bs-countdown__label">хв</span>
+    </div>
+
+    <div class="bs-countdown__sep">:</div>
+
+    <div class="bs-countdown__item">
+      <span class="bs-countdown__num" data-part="seconds">00</span>
+      <span class="bs-countdown__label">с</span>
+    </div>
+  </div>
+
+  <button id="main-cta" class="btn btn--primary pay-btn" data-product-id="rfoot_370" type="button">
+    <span>Почати відновлення</span>
+    <span class="btn-fixed__discount">-85%</span>
+  </button>
+
+  <p class="spots">
+    Залишилось <span data-spots></span> місць за акцією
+  </p>
+</section>
+  <section class="bs-forwho section">
+    <div class="container">
+      <h2 class="section__title">Цей курс для тебе, якщо…</h2>
+      <div class="forwho__grid">
+
+        <div class="forwho__card">
+          <img src="./img/forwho-morning.webp" alt="Біль зранку" class="forwho__img">
+          <h3 class="forwho__title">Болить зранку</h3>
+          <p class="forwho__text">Важко зробити перші кроки зранку — біль у п’яті не дає вільно рухатись.</p>
+        </div>
+
+        <div class="forwho__card">
+          <img src="./img/forwho-work.webp" alt="Довга робота на ногах" class="forwho__img">
+          <h3 class="forwho__title">Робота на ногах</h3>
+          <p class="forwho__text">Ноги втомлюються і болять після довгого робочого дня.</p>
+        </div>
+
+        <div class="forwho__card">
+          <img src="./img/forwho-sport.webp" alt="Для спортсменів" class="forwho__img">
+          <h3 class="forwho__title">Після спорту</h3>
+          <p class="forwho__text">Стопа ниє після тренування чи пробіжки, не можеш повернутись у форму.</p>
+        </div>
+
+        <div class="forwho__card">
+          <img src="./img/forwho-meds.webp" alt="Не допомогли ліки" class="forwho__img">
+          <h3 class="forwho__title">Полегшення ненадовго</h3>
+          <p class="forwho__text">Мазі, процедури, устілки чи самомасаж можуть полегшити стан, але дискомфорт повертається під час ходьби або навантаження.</p>
+        </div>
+        <p class="forwho__alert">Якщо біль регулярно повертається, важливо не лише зменшувати симптоми, а й поступово відновлювати здатність стопи переносити навантаження.</p>
+        <button class="btn btn--primary pay-btn" data-product-id="rfoot_370" type="button">Почати відновлення сьогодні</button>
+
+      </div>
+    </div>
+  </section>
+
+<section class="foot-treatment section" id="why-treatment">
+  <div class="container">
+
+    <div class="foot-treatment__head">
+
+      <h2 class="foot-treatment__title">
+        Чому звичайне лікування не завжди допомагає або має тимчасовий ефект?
+      </h2>
+
+      <p class="foot-treatment__text">
+        При болю в стопі часто використовують мазі, таблетки, самомасаж або фізіопроцедури.
+        Вони можуть допомогти зменшити симптоми, але без активного відновлення цього інколи
+        недостатньо або ефект може бути тимчасовим.
+      </p>
+
+      <p class="foot-treatment__accent">
+        Тому важливо додавати вправи та поступово змінювати навантаження відповідно до етапу відновлення.
+      </p>
+    </div>
+
+    <div class="foot-treatment__stages">
+
+      <article class="foot-treatment__stage">
+        <span class="foot-treatment__number">1</span>
+
+        <div>
+          <span class="foot-treatment__label">Перший етап</span>
+
+          <h3 class="foot-treatment__stage-title">
+            Зменшити біль та відновити рух
+          </h3>
+
+          <p>
+            Простіші вправи на рухливість, активацію м’язів стопи та гомілки
+            і поступове повернення навантаження.
+          </p>
+        </div>
+      </article>
+
+      <article class="foot-treatment__stage foot-treatment__stage--accent">
+        <span class="foot-treatment__number">2</span>
+
+        <div>
+          <span class="foot-treatment__label">Другий етап</span>
+
+          <h3 class="foot-treatment__stage-title">
+            Повернути силу та витривалість
+          </h3>
+
+          <p>
+            Складніші вправи на силу, баланс і витривалість, щоб поступово
+            повернутися до ходьби, роботи та спортивних навантажень.
+          </p>
+        </div>
+      </article>
+
+      <span class="foot-treatment__kicker">
+        Саме так побудований мій курс
+      </span>
+    </div>
+
+  </div>
+</section>
+
+  <section class="bs-inside section section--pattern section--accent-edge">
+    <div class="container">
+      <h2 class="bs-inside__title">Що всередині курсу</h2>
+
+      <ul class="bs-inside__list">
+        <li class="bs-inside__item">
+          <h3 class="bs-inside__h">12 структурованих відео-комплексів</h3>
+          <p class="bs-inside__p">Кожен комплекс адаптований під різні етапи відновлення — від гострого болю до функціонального повернення.</p>
+        </li>
+        <li class="bs-inside__item">
+          <h3 class="bs-inside__h">Чіткі відео з демонстрацією кожної вправи</h3>
+          <p class="bs-inside__p">У кожному комплексі – покрокові відеоінструкції з правильним виконанням. Без води, тільки суть. Просто дивишся та повторюєш.</p>
+        </li>
+        <li class="bs-inside__item">
+          <h3 class="bs-inside__h">Гнучкий графік: займаєшся коли зручно</h3>
+          <p class="bs-inside__p">Вправи займають всього 15 хвилин на день, можна тренуватись у будь-який час.</p>
+        </li>
+        <li class="bs-inside__item">
+          <h3 class="bs-inside__h">Telegram-чат-бот</h3>
+          <p class="bs-inside__p">Курс проходить у зручному форматі: щодня бот надсилає нові відео й рекомендації, щоб тримати мотивацію.</p>
+        </li>
+        <li class="bs-inside__item">
+          <h3 class="bs-inside__h">4 функціональні відеотести</h3>
+          <p class="bs-inside__p">Тести допомагають оцінити рухливість, силу та контроль стопи на старті й краще орієнтуватися у прогресі під час курсу.</p>
+        </li>
+        <li class="bs-inside__item">
+          <h3 class="bs-inside__h">Прогресування навантаження</h3>
+          <p class="bs-inside__p">Поступовий перехід від простіших вправ до складніших із контрольованим збільшенням навантаження.</p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="bs-divider bs-divider--wave" aria-hidden="true"></div>
+  <section class="bs-results section section--alt">
+    <div class="container">
+      <h2 class="bs-results__title">Результати, які ти отримаєш після курсу</h2>
+
+      <ul class="bs-results__grid">
+        <li class="bs-result">
+          <span class="bs-result__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M9.5 16.2 5.3 12l1.4-1.4 2.8 2.8 7-7L18 7.8z"/></svg>
+          </span>
+          <h3 class="bs-result__h">Менше болю в п’яті та стопі</h3>
+          <p class="bs-result__p">Відчутне зменшення дискомфорту вже з першого тижня за рахунок правильно підібраних навантажень.</p>
+        </li>
+
+        <li class="bs-result">
+          <span class="bs-result__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M9.5 16.2 5.3 12l1.4-1.4 2.8 2.8 7-7L18 7.8z"/></svg>
+          </span>
+          <h3 class="bs-result__h">Легкість в ногах</h3>
+          <p class="bs-result__p">Зникає відчуття «свинцю в ногах» після роботи</p>
+        </li>
+
+        <li class="bs-result">
+          <span class="bs-result__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M9.5 16.2 5.3 12l1.4-1.4 2.8 2.8 7-7L18 7.8z"/></svg>
+          </span>
+          <h3 class="bs-result__h">Стійкість до навантажень</h3>
+          <p class="bs-result__p">Знову можеш довго гуляти з дітьми чи друзями без болю</p>
+        </li>
+
+        <li class="bs-result">
+          <span class="bs-result__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M9.5 16.2 5.3 12l1.4-1.4 2.8 2.8 7-7L18 7.8z"/></svg>
+          </span>
+          <h3 class="bs-result__h">Покращення рухливості й координації  </h3>
+          <p class="bs-result__p">Покращення амплітуди рухів у гомілково-ступневому суглобі та впевненість в ходьбі.</p>
+        </li>
+
+        <li class="bs-result">
+          <span class="bs-result__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M9.5 16.2 5.3 12l1.4-1.4 2.8 2.8 7-7L18 7.8z"/></svg>
+          </span>
+          <h3 class="bs-result__h">Покращення постави  </h3>
+          <p class="bs-result__p">Покращення стану при плостостопості або при вальгусі великого пальця</p>
+        </li>
+
+      </ul>
+      <p class="results__proof">💡 90% опитаних учасників відзначили перше полегшення вже протягом першого тижня*</p>
+      <p class="results__proof-note">*За результатами опитувань і відгуків учасників програми. Індивідуальні результати можуть відрізнятися.</p>
+      <button class="btn btn--primary pay-btn" data-product-id="rfoot_370" type="button">Хочу такі результати →</button>
+    </div>
+  </section>
+
+
+
+  <section class="section section--dark">
+    <div class="container">
+      <h2 class="section__title section__title--light">Програма курсу</h2>
+
+      <div class="timeline">
+
+        <!-- ROW 1: Етап 1 (first) -->
+        <div class="timeline__row is-first">
+          <div class="timeline__rail" aria-hidden="true"></div>
+          <details class="timeline__card is-accordion" open>
+            <summary class="timeline__summary">
+              <span class="tag tag--stage">Етап 1: Гострий</span>
+              <span class="summary__hint">зменшення болю та повернення рухливості</span>
+              <span class="toggler" aria-hidden="true"></span>
+            </summary>
+            <div class="timeline__panel">
+              <ul class="days">
+                <li><strong>День 1:</strong> розслаблення гомілки, робота з великогомілковим нервом, м’яка розтяжка</li>
+                <li><strong>День 2:</strong> техніки для плантарної фасції та зменшення болю при п’ятковій шпорі</li>
+                <li><strong>День 3:</strong> вправи на мобільність гомілкостопу для кращого кроку</li>
+                <li><strong>День 4:</strong> відновлення руху великого пальця, профілактика вальгусу</li>
+                <li><strong>День 5:</strong> робота з тригерними точками, вправи для суглобів і легке навантаження</li>
+                <li><strong>День 6:</strong> зняття напруги при тарзальному синдромі, активація коротких м’язів стопи</li>
+              </ul>
+            </div>
+          </details>
+        </div>
+
+        <!-- ROW 2: Тест (middle) -->
+        <div class="timeline__row">
+          <div class="timeline__rail" aria-hidden="true"></div>
+          <div class="timeline__card">
+            <div class="timeline__body">
+              <span class="tag">Тест</span>
+              <p class="test__p">Після етапу 1 проходиш короткий тест — перевіряємо готовність переходити на більшу інтенсивність.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ROW 3: Етап 2 (last) -->
+        <div class="timeline__row is-last">
+          <div class="timeline__rail" aria-hidden="true"></div>
+          <details class="timeline__card is-accordion">
+            <summary class="timeline__summary">
+              <span class="tag tag--stage">Етап 2: Функціональний</span>
+              <span class="summary__hint">зміцнення, баланс, адаптація</span>
+              <span class="toggler" aria-hidden="true"></span>
+            </summary>
+            <div class="timeline__panel">
+              <ul class="days">
+                <li><strong>День 1:</strong> силові вправи для стопи та гомілки з акцентом на витривалість</li>
+                <li><strong>День 2:</strong> тренування балансу й стабільності для щоденних навантажень</li>
+                <li><strong>День 3:</strong> поступова адаптація до більш інтенсивних вправ</li>
+                <li><strong>День 4:</strong> вправи на витривалість і контроль рухів у динаміці</li>
+                <li><strong>День 5:</strong> поєднання силових і балансувальних комплексів для глибшого ефекту</li>
+                <li><strong>День 6:</strong> фінальне закріплення результатів, стабільність і впевненість у русі</li>
+              </ul>
+            </div>
+          </details>
+        </div>
+
+      </div><!-- /timeline -->
+
+      <!-- Бонус — після рейки, без крапок -->
+      <div class="timeline__card">
+        <div class="timeline__body">
+          <span class="tag">Бонус</span>
+          <p>🎁 Відео на старті: фактори ризику болю в стопі, методи лікування, логіка курсу та як отримати максимум.</p>
+        </div>
+      </div>
+
+      <!-- CTA у брендовому кольорі -->
+      <div class="is-cta">
+        <button class="btn btn--primary pay-btn" data-product-id="rfoot_370" type="button">До курсу • 370 грн</button>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="bs-author section section--alt section--angled-top">
+    <div class="container bs-author__grid">
+      <div class="bs-author__content">
+        <h2 class="bs-author__title">Про автора курсу</h2>
+        <div class="bs-author__media">
+        <img src="./img/hero.webp" alt="Богдан — фізичний терапевт" class="bs-author__img">
+        </div>
+        <p class="bs-author__intro">
+          Привіт! Мене звати <strong>Богдан</strong>. Я фізичний терапевт з понад 10-річним досвідом роботи з травмами коліна, стопи та хребта.
+        </p>
+        <ul class="bs-author__list">
+          <li>Понад <span class="accent">2000 пацієнтів</span> уже пройшли мої індивідуальні та онлайн-програми.</li>
+          <li>Навчався за міжнародними методиками: Maliggan concept, Maitland, PNF, McKenzie, Thomas Myers (анатомічні поїзди), мануальна терапія.</li>
+          <li>Постійно підвищую кваліфікацію, відвідую конференції та навчаюся у провідних спеціалістів.</li>
+          <li>Поєдную знання анатомії, біомеханіки та доказових підходів для створення ефективних програм, які реально працюють.</li>
+          <li>Маю унікальний досвід: починав із масажу, а сьогодні — автор власних курсів та реабілітаційних протоколів.</li>
+        </ul>
+        <p class="bs-author__outro">
+          Я створив цей курс, щоб кожен зміг <span class="accent">безпечно та ефективно</span> покращити стан стопи, навіть без візиту до клініки. <span class="accent">Моя мета</span> — зробити знання та допомогу доступними для кожного.
+        </p>
+      </div>
+    </div>
+  </section>
+  <section class="reviews section">
+    <div class="container">
+      <h2 class="section__title">Відгуки учасників</h2>
+
+      <div class="rv-carousel" id="rvCarousel" aria-roledescription="carousel">
+        <button class="rv-nav rv-prev" aria-label="Попередній слайд">‹</button>
+
+        <div class="rv-viewport">
+          <ul class="rv-track">
+            <li class="rv-slide">
+              <img src="./img/rev1.webp" alt="Відгук 1" loading="lazy">
+            </li>
+            <li class="rv-slide">
+              <img src="./img/rev2.webp" alt="Відгук 2" loading="lazy">
+            </li>
+            <li class="rv-slide">
+              <img src="./img/rev3.webp" alt="Відгук 3" loading="lazy">
+            </li>
+            <li class="rv-slide">
+              <img src="./img/rev4.webp" alt="Відгук 3" loading="lazy">
+            </li>
+            <li class="rv-slide">
+              <img src="./img/rev5.webp" alt="Відгук 3" loading="lazy">
+            </li>
+          </ul>
+        </div>
+
+        <button class="rv-nav rv-next" aria-label="Наступний слайд">›</button>
+      </div>
+    </div>
+  </section>
+
+<section class="foot-program-compare section" id="why-my-program">
+  <div class="container">
+
+    <div class="foot-program-compare__head">
+      <span class="foot-program-compare__kicker">
+        Не просто окремі вправи
+      </span>
+
+      <h2 class="foot-program-compare__title">
+        Чому саме моя програма, а не випадкові вправи з інтернету?
+      </h2>
+
+      <p class="foot-program-compare__lead">
+        Окремі вправи можуть бути корисними. Але для повноцінного відновлення
+        важлива не тільки сама вправа, а й послідовність та поступова прогресія навантаження.
+      </p>
+    </div>
+
+
+    <div class="foot-program-compare__grid">
+
+      <!-- ЛІВА КАРТКА -->
+      <article class="foot-program-card foot-program-card--random">
+
+        <div class="foot-program-card__header">
+          <span class="foot-program-card__icon foot-program-card__icon--minus">
+            −
+          </span>
+
+          <h3>
+            Випадкові вправи з інтернету
+          </h3>
+        </div>
+
+        <ul class="foot-program-card__list">
+
+          <li>
+            <strong>Один комплекс — один рівень навантаження</strong>
+            <span>
+              3–7 вправ можуть бути корисними на певному етапі, але часто
+              не передбачають подальшої прогресії.
+            </span>
+          </li>
+
+          <li>
+            <strong>Часто акцент лише на тимчасовому полегшенні</strong>
+            <span>
+              Самомасаж, розтягування та легкі вправи можуть зменшувати дискомфорт,
+              але цього може бути недостатньо для повного відновлення.
+            </span>
+          </li>
+
+          <li>
+            <strong>Недостатньо роботи над силою та витривалістю</strong>
+            <span>
+              Стопа може почуватися краще, але залишатися недостатньо підготовленою
+              до тривалої ходьби, роботи або спорту.
+            </span>
+          </li>
+
+          <li>
+            <strong>Немає послідовного переходу від простого до складного</strong>
+            <span>
+              Один і той самий комплекс повторюється, навіть коли вже потрібен
+              наступний рівень навантаження.
+            </span>
+          </li>
+
+        </ul>
+
+      </article>
+
+
+      <!-- ПРАВА КАРТКА -->
+      <article class="foot-program-card foot-program-card--course">
+
+        <div class="foot-program-card__header">
+          <span class="foot-program-card__icon foot-program-card__icon--plus">
+            ✓
+          </span>
+
+          <h3>
+            Моя програма відновлення
+          </h3>
+        </div>
+
+        <ul class="foot-program-card__list">
+
+          <li>
+            <strong>12 послідовних комплексів</strong>
+            <span>
+              Вправи поступово змінюються від простішого рівня до складнішого
+              відповідно до етапу відновлення.
+            </span>
+          </li>
+
+          <li>
+            <strong>2 повноцінні етапи</strong>
+            <span>
+              Спочатку — робота з болем, рухливістю та активацією м’язів.
+              Далі — сила, витривалість і баланс.
+            </span>
+          </li>
+
+          <li>
+            <strong>Поступова прогресія навантаження</strong>
+            <span>
+              Ви не залишаєтесь на одному комплексі, а поступово готуєте стопу
+              до більших і складніших навантажень.
+            </span>
+          </li>
+
+          <li>
+            <strong>Повернення до звичного життя</strong>
+            <span>
+              Мета — не просто виконати вправи, а поступово підготувати стопу
+              до ходьби, роботи, тривалого стояння та спорту.
+            </span>
+          </li>
+
+        </ul>
+
+      </article>
+
+    </div>
+
+
+    <div class="foot-program-compare__bottom">
+      <strong>Не просто набір вправ — готова система відновлення.</strong>
+      <span>
+        Від першого заняття до поступового повернення до звичних навантажень.
+      </span>
+    </div>
+
+  </div>
+</section>
+
+  <section class="bs-pricing section section--tint section--angled-top">
+    <div class="container bs-pricing__grid">
+      <div class="bs-pricing__content">
+        <h2 class="bs-pricing__title">Приєднуйся до курсу вже сьогодні</h2>
+        <p class="bs-pricing__subtitle">Обмежена акційна ціна</p>
+
+        <!-- Ціни -->
+        <div class="bs-pricing__prices">
+          <span class="bs-pricing__now">370 грн</span>
+          <span class="bs-pricing__old">1899 грн</span>
+        </div>
+
+        <!-- Таймер -->
+        <div class="bs-countdown" data-mode="duration" data-key="foot-2h" data-duration-ms="900000" aria-label="До кінця акції залишилось">
+          <div class="bs-countdown__item">
+          <span class="bs-countdown__num" data-part="days">00</span>
+          <span class="bs-countdown__label">днів</span>
+          </div>
+          <div class="bs-countdown__sep">:</div>
+          <div class="bs-countdown__item"><span class="bs-countdown__num" data-part="hours">00</span><span class="bs-countdown__label">год</span></div>
+          <div class="bs-countdown__sep">:</div>
+          <div class="bs-countdown__item"><span class="bs-countdown__num" data-part="minutes">00</span><span class="bs-countdown__label">хв</span></div>
+          <div class="bs-countdown__sep">:</div>
+          <div class="bs-countdown__item"><span class="bs-countdown__num" data-part="seconds">00</span><span class="bs-countdown__label">с</span></div>
+        </div>
+
+        <!-- Кнопка -->
+        <button class="btn btn--primary bs-pricing__cta pay-btn"  data-product-id="rfoot_370" type="button">
+          До курсу • 370 грн
+        </button>
+        <p class="spots spots--price">Залишилось <span data-spots></span> місць</p>
+      </div>
+    </div>
+  </section>
+  <section class="bs-faq section section--alt section--angled-top" id="faq">
+    <div class="container">
+      <h2 class="bs-faq__title">Поширені запитання</h2>
+
+      <div class="bs-faq__list" data-faq>
+        <!-- FAQ item -->
+        <div class="bs-faq__item">
+          <button class="bs-faq__q" type="button" aria-expanded="false" aria-controls="faq-a1" id="faq-q1">
+            Коли я відчую перші результати?
+            <span class="bs-faq__chev" aria-hidden="true"></span>
+          </button>
+          <div class="bs-faq__a" id="faq-a1" role="region" aria-labelledby="faq-q1">
+            <div class="bs-faq__a-inner">
+              Більшість відчувають полегшення вже в перший тиждень завдяки правильному дозуванню навантаження.
+            </div>
+          </div>
+        </div>
+
+        <div class="bs-faq__item">
+          <button class="bs-faq__q" type="button" aria-expanded="false" aria-controls="faq-a2" id="faq-q2">
+            Скільки часу займають тренування?
+            <span class="bs-faq__chev" aria-hidden="true"></span>
+          </button>
+          <div class="bs-faq__a" id="faq-a2" role="region" aria-labelledby="faq-q2">
+            <div class="bs-faq__a-inner">
+              У середньому 15 хвилин на день. Можна займатися у будь-який зручний час.
+            </div>
+          </div>
+        </div>
+
+        <div class="bs-faq__item">
+          <button class="bs-faq__q" type="button" aria-expanded="false" aria-controls="faq-a3" id="faq-q3">
+            Чи підійде мені курс, якщо біль триває давно?
+            <span class="bs-faq__chev" aria-hidden="true"></span>
+          </button>
+          <div class="bs-faq__a" id="faq-a3" role="region" aria-labelledby="faq-q3">
+            <div class="bs-faq__a-inner">
+              Так. Програма має 2 етапи — від гострого до функціонального, з поступовим прогресуванням.
+            </div>
+          </div>
+        </div>
+
+        <div class="bs-faq__item">
+          <button class="bs-faq__q" type="button" aria-expanded="false" aria-controls="faq-a4" id="faq-q4">
+            Чи підійде мені цей курс, якщо я не знаю свій діагноз?
+            <span class="bs-faq__chev" aria-hidden="true"></span>
+          </button>
+          <div class="bs-faq__a" id="faq-a4" role="region" aria-labelledby="faq-q4">
+            <div class="bs-faq__a-inner">
+              У багатьох випадках можна почати з програми, орієнтуючись не лише на назву діагнозу, а й на переносимість навантаження та функцію стопи. Водночас курс не замінює медичну діагностику: якщо причина болю незрозуміла, симптоми нетипові або стан погіршується, варто звернутися до лікаря чи фізичного терапевта.
+            </div>
+          </div>
+        </div>
+
+        <div class="bs-faq__item">
+          <button class="bs-faq__q" type="button" aria-expanded="false" aria-controls="faq-a5" id="faq-q5">
+            Чи не зроблю я собі гірше?
+            <span class="bs-faq__chev" aria-hidden="true"></span>
+          </button>
+          <div class="bs-faq__a" id="faq-a5" role="region" aria-labelledby="faq-q5">
+            <div class="bs-faq__a-inner">
+              Програма починається з простішого рівня та передбачає поступове збільшення навантаження. Невелика реакція на нове навантаження можлива, тому важливо орієнтуватися на самопочуття. Якщо вправа викликає різкий біль або виражене й тривале погіршення, навантаження потрібно зменшити та за потреби звернутися за консультацією.
+            </div>
+          </div>
+        </div>
+
+        <div class="bs-faq__item">
+          <button class="bs-faq__q" type="button" aria-expanded="false" aria-controls="faq-a6" id="faq-q6">
+            Чи треба йти до лікаря перед стартом?
+            <span class="bs-faq__chev" aria-hidden="true"></span>
+          </button>
+          <div class="bs-faq__a" id="faq-a6" role="region" aria-labelledby="faq-q6">
+            <div class="bs-faq__a-inner">
+              Якщо це знайомий механічний біль без гострої травми та виражених тривожних симптомів, програму можна починати поступово. Але після свіжої травми, при значному набряку, почервонінні, сильному нічному болю, різкому погіршенні стану або якщо ви не впевнені в причині симптомів — спочатку варто звернутися до лікаря.
+            </div>
+          </div>
+        </div>
+
+        <div class="bs-faq__item">
+          <button class="bs-faq__q" type="button" aria-expanded="false" aria-controls="faq-a7" id="faq-q7">
+            У мене зовсім немає підготовки, я давно нічого не робив(ла). Мені підійде?
+            <span class="bs-faq__chev" aria-hidden="true"></span>
+          </button>
+          <div class="bs-faq__a" id="faq-a7" role="region" aria-labelledby="faq-q7">
+            <div class="bs-faq__a-inner">
+              Так. Курс розрахований навіть на початківців. Вправи поступово ускладнюються, але починаємо з простого.
+            </div>
+          </div>
+        </div>
+
+        <div class="bs-faq__item">
+          <button class="bs-faq__q" type="button" aria-expanded="false" aria-controls="faq-a8" id="faq-q8">
+            Чи зможу я проходити курс, якщо весь день на ногах / на роботі?
+            <span class="bs-faq__chev" aria-hidden="true"></span>
+          </button>
+          <div class="bs-faq__a" id="faq-a8" role="region" aria-labelledby="faq-q8">
+            <div class="bs-faq__a-inner">
+              Так, саме для таких випадків і створений цей курс. Регулярне виконання вправ знімає перенавантаження та допомагає швидше відновлювати стопу після робочого дня.
+            </div>
+          </div>
+        </div>
+
+        <div class="bs-faq__item">
+          <button class="bs-faq__q" type="button" aria-expanded="false" aria-controls="faq-a9" id="faq-q9">
+            А якщо я пропущу день або тиждень?
+            <span class="bs-faq__chev" aria-hidden="true"></span>
+          </button>
+          <div class="bs-faq__a" id="faq-a9" role="region" aria-labelledby="faq-q9">
+            <div class="bs-faq__a-inner">
+              Нічого страшного. Просто повертаєшся до виконання, як тільки можеш. Курс побудований так, щоб ти міг іти у своєму темпі, але краще все ж таки притримуватись графіку 😉
+            </div>
+          </div>
+        </div>
+
+        <div class="bs-faq__item">
+          <button class="bs-faq__q" type="button" aria-expanded="false" aria-controls="faq-a10" id="faq-q10">
+            Я боюсь, що не зрозумію, як правильно робити вправи
+            <span class="bs-faq__chev" aria-hidden="true"></span>
+          </button>
+          <div class="bs-faq__a" id="faq-a10" role="region" aria-labelledby="faq-q10">
+            <div class="bs-faq__a-inner">
+              Кожен комплекс — це чітке відео з поясненням і демонстрацією. Усе показано крок за кроком, як для себе. Якщо щось буде незрозуміло — завжди можна написати в бот або звернутись за допомогою.
+            </div>
+          </div>
+        </div>
+
+        <div class="bs-faq__item">
+          <button class="bs-faq__q" type="button" aria-expanded="false" aria-controls="faq-a11" id="faq-q11">
+            Що буде після оплати?
+            <span class="bs-faq__chev" aria-hidden="true"></span>
+          </button>
+          <div class="bs-faq__a" id="faq-a11" role="region" aria-labelledby="faq-q11">
+            <div class="bs-faq__a-inner">
+              Тебе автоматично перекине у чат-бот. Там буде вступне відео, тести (за бажанням), і далі — нові вправи кожного дня. Все просто.
+            </div>
+          </div>
+        </div>
+
+        <div class="bs-faq__item">
+          <button class="bs-faq__q" type="button" aria-expanded="false" aria-controls="faq-a12" id="faq-q12">
+            Чи залишиться доступ до курсу після завершення?
+            <span class="bs-faq__chev" aria-hidden="true"></span>
+          </button>
+          <div class="bs-faq__a" id="faq-a12" role="region" aria-labelledby="faq-q12">
+            <div class="bs-faq__a-inner">
+              Так, ти отримаєш доступ назавжди. Зможеш повертатись до вправ у будь-який момент, коли потрібно.
+            </div>
+          </div>
+        </div>
+
+        <div class="bs-faq__item">
+          <button class="bs-faq__q" type="button" aria-expanded="false" aria-controls="faq-a13" id="faq-q13">
+            А якщо курс мені не підійде?
+            <span class="bs-faq__chev" aria-hidden="true"></span>
+          </button>
+          <div class="bs-faq__a" id="faq-a13" role="region" aria-labelledby="faq-q13">
+            <div class="bs-faq__a-inner">
+              У тебе є 14 днів, щоб спробувати. Якщо щось не так — поверну кошти без питань. Я за чесний підхід і твою довіру.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="bs-trust section section--tint section--accent-edge" id="guarantee">
+    <div class="container">
+      <div class="bs-trust__card">
+        <div class="bs-trust__icon" aria-hidden="true">
+          <!-- Shield icon -->
+          <svg viewBox="0 0 24 24" width="28" height="28">
+            <path fill="currentColor" d="M12 2 4 5v6c0 5.25 3.4 10.05 8 11 4.6-.95 8-5.75 8-11V5l-8-3Z"/>
+            <path fill="#fff" d="M10.9 14.7 8.4 12.2l1.1-1.1 1.4 1.4 3.7-3.7 1.1 1.1-4.8 4.8Z"/>
+          </svg>
+        </div>
+
+        <div class="bs-trust__body">
+          <h2 class="bs-trust__title">Гарантія результату — 14 днів</h2>
+          <p class="bs-trust__lead">
+            Я настільки впевнений в ефективності свого курсу, що готовий зробити пропозицію, від якої неможливо відмовитися.
+          </p>
+          <p class="bs-trust__lead">
+            Запишіться на мій курс. Притримуйтесь всіх рекомендацій та активно виконуйте всі вправи. І якщо через 14 днів ви не покращите якість життя хоча б на трохи , я поверну вам кошти в повному обсязі.
+          </p>
+          <p class="bs-trust__lead">
+            Тож сміливо приєднуйтеся до мого курсу без ризику.
+          </p>
+          <p class="bs-trust__note">
+            * Повернення діє протягом 14 днів із моменту старту курсу. Мета — зняти ризик і допомогти тобі спокійно розпочати.
+          </p>
+
+          <button class="btn btn--primary bs-trust__cta pay-btn" data-product-id="rfoot_370" type="button">До курсу • 370 грн</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+<link rel="stylesheet" href="../shared/css/footer.css"><!-- підключаємо стилі футера -->
+
+<footer class="site-footer">
+  <div class="site-footer__grid">
+    <!-- Бренд -->
+    <div>
+      <div class="site-footer__brand">
+        <img src="../shared/img/logo.png" alt="Bogdan Rehab" class="site-footer__logo">
+        <div>
+          <p class="site-footer__desc">ФОП Латиш Богдан Вячеславович</p>
+          <p class="site-footer__desc">ЄДРПОУ 3392515210</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Контакти з іконками -->
+    <div class="site-footer__cols">
+      <div class="site-footer__col">
+        <h3>Контакти</h3>
+        <div class="site-footer__socials">
+          <a href="bog.rehab@gmail.com" aria-label="Email">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+              <path d="M2 4h20v16H2V4zm10 7L4 6v12h16V6l-8 5z"/>
+            </svg>
+          </a>
+          <a href="https://t.me/bogdanrehab" target="_blank" rel="noopener" aria-label="Telegram">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+              <path d="M9.9 16.2 9.8 20c.4 0 .6-.2.8-.4l2-2 4.1 3c.8.4 1.4.2 1.6-.8l3-14c.3-1.2-.4-1.7-1.2-1.4L2.8 9.8c-1.1.4-1 1-.2 1.3l4.6 1.4L18 6.3 9.9 16.2z"/>
+            </svg>
+          </a>
+          <a href="https://www.instagram.com/bogdan.rehab" target="_blank" rel="noopener" aria-label="Instagram">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+              <path d="M7 2C4.2 2 2 4.2 2 7v10c0 2.8 2.2 5 5 5h10c2.8 0 5-2.2 5-5V7c0-2.8-2.2-5-5-5H7zm0 2h10c1.7 0 3 1.3 3 3v10c0 1.7-1.3 3-3 3H7c-1.7 0-3-1.3-3-3V7c0-1.7 1.3-3 3-3zm5 2a5 5 0 100 10 5 5 0 000-10zm0 2a3 3 0 110 6 3 3 0 010-6zm5.5-.9a1.1 1.1 0 100 2.2 1.1 1.1 0 000-2.2z"/>
+            </svg>
+          </a>
+          <a href="https://www.facebook.com/Bogdan.rehab" target="_blank" rel="noopener" aria-label="Facebook">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+              <path d="M13 3h4V0h-4c-3.3 0-6 2.7-6 6v3H4v4h3v11h4V13h3.1l.9-4H11V6c0-1.1.9-2 2-2z"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Нижня смуга -->
+    <div class="site-footer__bottom">
+      <span>© 2025 Bogdan Rehab</span>
+      <div class="site-footer__legal">
+        <a href="/foot/privacy/">Політика конфіденційності</a>
+        <a href="/foot/offer/">Публічна оферта</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<footer class="footer">© Bogdan Rehab</footer>
+<div class="bs-toasts" aria-live="polite" aria-atomic="true"></div>
+<!-- STICKY CTA (внизу екрана) -->
+<button class="bs-sticky-cta pay-btn" data-product-id="rfoot_370" type="button" aria-label="Приєднатись зараз за 370 грн">
+  Приєднатись зараз за 370 грн
+</button>
+<script src="../shared/js/base.js"></script>
+<script src="./foot.js"></script>
+
+
+</body>
+</html>
